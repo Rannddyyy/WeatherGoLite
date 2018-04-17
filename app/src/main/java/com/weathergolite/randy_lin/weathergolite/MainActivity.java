@@ -205,6 +205,7 @@ public class MainActivity extends AppCompatActivity {
             case 123:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Location location = getLastKnowLocation();
+                    Log.e("@@@@@@@@@@",location.getLatitude()+","+location.getLongitude());
                     if (location == null) return;
                     WeatherAsyncTask weatherAsyncTask = new WeatherAsyncTask(this, location);
                     weatherAsyncTask.execute();
@@ -415,11 +416,12 @@ public class MainActivity extends AppCompatActivity {
         temperatureAT.setText("體感溫度: " + AT[index] + "°C");
         RprobabilityT.setText(PoP6h[index] + "%");
         humidityT.setText(RH[index] + "%");
-        windspeedT.setText(Wind[index] + "m/s");
-        if (Wind[index].indexOf("<=") >= 0)
-            windspeedT.setTextSize(17);
-        windinfoT.setText(WindInfo[index]);
-
+        if(Wind[index]!=null) {
+            windspeedT.setText(Wind[index] + "m/s");
+            if (Wind[index].indexOf("<=") >= 0)
+                windspeedT.setTextSize(17);
+            windinfoT.setText(WindInfo[index]);
+        }
         weatherImage.setImageResource(weather_icon[weather_code(WeatherCode[index])]);
         setTchart();
         setRPcahrt();
@@ -585,6 +587,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... params) {
             try {
+                Log.e("Pos", mlocation.getLatitude() + "," + mlocation.getLongitude());
                 getWeatherInfo(new Geolocation(getApplicationContext()).getGeolocation(new LatLng(mlocation.getLatitude(), mlocation.getLongitude())));
             } catch (JSONException e) {
                 e.printStackTrace();
