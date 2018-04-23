@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        weathergoliteSign {
+            keyAlias 'key0'
+            keyPassword '056938425'
+            storeFile file('C:/AndroidStudio/appkey.jks')
+            storePassword '056938425'
+        }
+    }
     compileSdkVersion 26
     defaultConfig {
         applicationId "com.weathergolite.randy_lin.weathergolite"
@@ -20,8 +28,8 @@ android {
         }
         applicationVariants.all { variant ->
             variant.outputs.all {
-            outputFileName = "WeatherGoLite.apk"
-        }
+                outputFileName = "WeatherGoLite.apk"
+            }
         }
     }
     packagingOptions {
@@ -30,7 +38,7 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     testImplementation 'junit:junit:4.12'

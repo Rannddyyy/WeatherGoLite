@@ -1,7 +1,6 @@
 package com.weathergolite.randy_lin.weathergolite;
 
 import android.annotation.SuppressLint;
-import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -35,6 +34,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
         weatherImage = this.findViewById(R.id.weather_icon);
         Tchart = this.findViewById(R.id.Tchart);
         RPchart = this.findViewById(R.id.RPchart);
-        final MyScrollView p = (this.findViewById(R.id.scrollView));
+        final MyScrollView p = this.findViewById(R.id.scrollView);
         p.setOnScrollListener(new MyScrollView.OnScrollListener() {
 
             @Override
@@ -158,6 +158,12 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        RelativeLayout locationTitle = (RelativeLayout) this.findViewById(R.id.locationTitle);
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) locationTitle.getLayoutParams();
+        params.setMargins(0, getStatusBarHeight() + 15, 0, 0);
+        locationTitle.setLayoutParams(params);
+
         xVals = new ArrayList<>();
         TyVals = new ArrayList<>();
         RPyVals = new ArrayList<>();
@@ -421,7 +427,7 @@ public class MainActivity extends AppCompatActivity {
         temperatureAT.setText("體感溫度: " + AT[index] + "°C");
         RprobabilityT.setText(PoP6h[index] + "%");
         humidityT.setText(RH[index] + "%");
-        if(Wind[index]!=null) {
+        if (Wind[index] != null) {
             windspeedT.setText(Wind[index] + "m/s");
             if (Wind[index].indexOf("<=") >= 0)
                 windspeedT.setTextSize(17);
@@ -543,6 +549,15 @@ public class MainActivity extends AppCompatActivity {
         return 0;
     }
 
+    private int getStatusBarHeight() {
+        int result = 0;
+        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            result = getResources().getDimensionPixelSize(resourceId);
+        }
+        return result;
+    }
+
     public class NetworkChangeReceiver extends BroadcastReceiver {
 
         @Override
@@ -567,7 +582,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
 
     private class WeatherAsyncTask extends AsyncTask<Void, Void, Void> {
         Location mlocation;
