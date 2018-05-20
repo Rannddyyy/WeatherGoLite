@@ -355,18 +355,6 @@ public class MainActivity extends AppCompatActivity {
         toastMsg.show();
     }
 
-    @Override
-    public void onBackPressed() { 
-        if (mBackPressed + BACK_TIME_INTERVAL > System.currentTimeMillis()) {
-            super.onBackPressed();
-            return;
-        } else {
-            Toast.makeText(getBaseContext(), "再一次「返回」離開", Toast.LENGTH_SHORT).show();
-        }
-
-        mBackPressed = System.currentTimeMillis();
-    }
-
     private void getWeatherInfo(String geolocation) throws JSONException {
         geoLocation = geolocation.split(",");
         if (!weather.getWeather(geolocation)) return;
