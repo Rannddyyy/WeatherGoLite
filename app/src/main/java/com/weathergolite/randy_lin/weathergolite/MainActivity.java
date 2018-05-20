@@ -356,7 +356,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onBackPressed() { //back key
+    public void onBackPressed() { 
         if (mBackPressed + BACK_TIME_INTERVAL > System.currentTimeMillis()) {
             super.onBackPressed();
             return;
