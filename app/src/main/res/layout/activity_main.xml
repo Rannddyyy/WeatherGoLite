@@ -39,8 +39,8 @@
                         android:orientation="horizontal">
 
                         <ImageView
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
                             android:layout_gravity="center"
                             android:layout_toStartOf="@id/location"
                             android:src="@drawable/ic_place_white_24dp" />

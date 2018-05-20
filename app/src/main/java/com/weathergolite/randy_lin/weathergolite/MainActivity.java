@@ -28,7 +28,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.format.Time;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -58,6 +57,7 @@ import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
 public class MainActivity extends AppCompatActivity {
+    private static final int BACK_TIME_INTERVAL = 2000; // # milliseconds, desired time passed between two back presses.
     private final LocationListener locationListener = new LocationListener() {
         public void onLocationChanged(Location location) {
         }
@@ -73,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
         public void onStatusChanged(String provider, int status, Bundle extras) {
         }
     };
-
     private Handler handler = new Handler();
     private LocationManager locationManager;
     private NetworkChangeReceiver networkChangeReceiver;
@@ -122,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
             handler.postDelayed(this, 1000);
         }
     };
+    private long mBackPressed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -159,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        RelativeLayout locationTitle = (RelativeLayout) this.findViewById(R.id.locationTitle);
+        RelativeLayout locationTitle = this.findViewById(R.id.locationTitle);
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) locationTitle.getLayoutParams();
         params.setMargins(0, getStatusBarHeight() + 15, 0, 0);
         locationTitle.setLayoutParams(params);
@@ -356,30 +356,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        // TODO Auto-generated method stub
-        if (keyCode == KeyEvent.KEYCODE_BACK && getFragmentManager().getBackStackEntryCount() == 0) { // 攔截返回鍵
-            new AlertDialog.Builder(MainActivity.this)
-                    .setMessage("確定要結束應用程式嗎?")
-                    .setNegativeButton("確定",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog,
-                                                    int which) {
-                                    finish();
-                                }
-                            })
-                    .setPositiveButton("取消",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog,
-                                                    int which) {
-                                }
-                            }).show();
+    public void onBackPressed() {
+        if (mBackPressed + BACK_TIME_INTERVAL > System.currentTimeMillis()) {
+            super.onBackPressed();
+            return;
+        } else {
+            Toast.makeText(getBaseContext(), "再一次「返回」離開", Toast.LENGTH_SHORT).show();
         }
-        return true;
-    }
 
+        mBackPressed = System.currentTimeMillis();
+    }
 
     private void getWeatherInfo(String geolocation) throws JSONException {
         geoLocation = geolocation.split(",");
@@ -421,7 +407,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setWeatherInfo() {
-        ((LinearLayout) findViewById(R.id.linearlayout)).setBackgroundResource((h > 17 || h < 6) ? R.drawable.background_main_2 : R.drawable.background_main);
+        findViewById(R.id.linearlayout).setBackgroundResource((h > 17 || h < 6) ? R.drawable.background_main_2 : R.drawable.background_main);
         locationT.setText(geoLocation[1]);
         temperatureT.setText(T[index] + "°C");
         temperatureAT.setText("體感溫度: " + AT[index] + "°C");
