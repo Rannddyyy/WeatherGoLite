@@ -24,8 +24,10 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -33,10 +35,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.format.Time;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -100,6 +106,8 @@ public class MainActivity extends AppCompatActivity {
     private String[] Wind;
     private String[] WindInfo;
     private String[] WeatherCode;
+    private String[] locationCounty;
+    private String[][] locationCity;
     private int[] weather_icon;
     private ArrayList<String> xVals;
     private ArrayList<Entry> TyVals;
@@ -163,6 +171,23 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        final Spinner countrySpinner = (Spinner) findViewById(R.id.locationCountry_spinner);
+        ArrayAdapter<CharSequence> adapList = ArrayAdapter.createFromResource(MainActivity.this, R.array.Country, R.layout.spinner_center_textview);
+        countrySpinner.setAdapter(adapList);
+        final Spinner citySpinner = (Spinner) findViewById(R.id.locationCity_spinner);
+        countrySpinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                ArrayAdapter<CharSequence> adapList2 = ArrayAdapter.createFromResource(MainActivity.this, country2id(parent.getSelectedItem().toString()), R.layout.spinner_center_textview);
+                citySpinner.setAdapter(adapList2);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         AppBarLayout.LayoutParams tparams = (AppBarLayout.LayoutParams) toolbar.getLayoutParams();
         tparams.setMargins(0, getStatusBarHeight() - 20, 0, 0);
@@ -171,9 +196,29 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+                WeatherAsyncTaskCustom weatherAsyncTaskCustom = new WeatherAsyncTaskCustom(MainActivity.this, countrySpinner.getSelectedItem().toString() + "," + citySpinner.getSelectedItem().toString());
+                weatherAsyncTaskCustom.execute();
+            }
+
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+            }
+        };
         drawer.addDrawerListener(toggle);
         toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                return false;
+            }
+        });
+
 
         xVals = new ArrayList<>();
         TyVals = new ArrayList<>();
@@ -191,6 +236,56 @@ public class MainActivity extends AppCompatActivity {
                 R.drawable.weather_icon_main_night_1,
                 R.drawable.weather_icon_main_night_5
         };
+    }
+
+    private int country2id(String c) {
+        switch (c) {
+            case "宜蘭縣":
+                return R.array.宜蘭縣;
+            case "桃園市":
+                return R.array.桃園市;
+            case "新竹縣":
+                return R.array.新竹縣;
+            case "苗栗縣":
+                return R.array.苗栗縣;
+            case "彰化縣":
+                return R.array.彰化縣;
+            case "南投縣":
+                return R.array.南投縣;
+            case "雲林縣":
+                return R.array.雲林縣;
+            case "嘉義縣":
+                return R.array.嘉義縣;
+            case "屏東縣":
+                return R.array.屏東縣;
+            case "台東縣":
+                return R.array.台東縣;
+            case "花蓮縣":
+                return R.array.花蓮縣;
+            case "澎湖縣":
+                return R.array.澎湖縣;
+            case "基隆市":
+                return R.array.基隆市;
+            case "新竹市":
+                return R.array.新竹市;
+            case "嘉義市":
+                return R.array.嘉義市;
+            case "台北市":
+                return R.array.台北市;
+            case "高雄市":
+                return R.array.高雄市;
+            case "新北市":
+                return R.array.新北市;
+            case "台中市":
+                return R.array.台中市;
+            case "台南市":
+                return R.array.台南市;
+            case "連江縣":
+                return R.array.連江縣;
+            case "金門縣":
+                return R.array.金門縣;
+        }
+        return -1;
     }
 
     private void detectDevice() {
@@ -368,6 +463,12 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+            return;
+        }
+
         if (mBackPressed + BACK_TIME_INTERVAL > System.currentTimeMillis()) {
             super.onBackPressed();
             return;
@@ -625,4 +726,48 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private class WeatherAsyncTaskCustom extends AsyncTask<Void, Void, Void> {
+        String mlocation;
+        private Context mContext;
+        private ProgressDialog progressDialog;
+
+        WeatherAsyncTaskCustom(Context c, String loc) {
+            mContext = c;
+            mlocation = loc;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog = new ProgressDialog(mContext);
+            progressDialog.setMessage("正在載入天氣資訊...");
+            progressDialog.setIndeterminate(true);
+            progressDialog.setCancelable(false);
+            progressDialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                Log.e("Pos", mlocation);
+                getWeatherInfo(mlocation);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    setWeatherInfo();
+                }
+            });
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void v) {
+            super.onPostExecute(v);
+            progressDialog.dismiss();
+        }
+
+    }
 }
