@@ -22,18 +22,21 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.format.Time;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,6 +55,7 @@ import com.google.android.gms.maps.model.LatLng;
 import org.json.JSONException;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
@@ -159,10 +163,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        RelativeLayout locationTitle = this.findViewById(R.id.locationTitle);
-        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) locationTitle.getLayoutParams();
-        params.setMargins(0, getStatusBarHeight() + 15, 0, 0);
-        locationTitle.setLayoutParams(params);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        AppBarLayout.LayoutParams tparams = (AppBarLayout.LayoutParams) toolbar.getLayoutParams();
+        tparams.setMargins(0, getStatusBarHeight() - 20, 0, 0);
+        toolbar.setLayoutParams(tparams);
+
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
 
         xVals = new ArrayList<>();
         TyVals = new ArrayList<>();
@@ -184,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void detectDevice() {
         boolean isNetworkConnected = isNetworkConnected(this);
-        boolean isWifiConnected = ((WifiManager) this.getApplicationContext().getSystemService(Context.WIFI_SERVICE)).isWifiEnabled();
+        boolean isWifiConnected = ((WifiManager) Objects.requireNonNull(this.getApplicationContext().getSystemService(Context.WIFI_SERVICE))).isWifiEnabled();
         if (!isNetworkConnected && !isWifiConnected) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
             dialog.setMessage("偵測裝置到尚未開啟WiFi或行動網路，這可能會使大部分功能無法使用。");
@@ -202,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
         if (context != null) {
             ConnectivityManager cm = (ConnectivityManager) context
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo mNetworkInfo = cm.getActiveNetworkInfo();
+            NetworkInfo mNetworkInfo = Objects.requireNonNull(cm).getActiveNetworkInfo();
             if (mNetworkInfo != null) {
                 return mNetworkInfo.isAvailable();
             }
@@ -211,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case 123:
@@ -353,6 +364,18 @@ public class MainActivity extends AppCompatActivity {
             toastMsg.cancel();
         toastMsg = Toast.makeText(this, msg, Toast.LENGTH_SHORT);
         toastMsg.show();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mBackPressed + BACK_TIME_INTERVAL > System.currentTimeMillis()) {
+            super.onBackPressed();
+            return;
+        } else {
+            Toast.makeText(getBaseContext(), "再一次「返回」離開", Toast.LENGTH_SHORT).show();
+        }
+
+        mBackPressed = System.currentTimeMillis();
     }
 
     private void getWeatherInfo(String geolocation) throws JSONException {
@@ -543,7 +566,7 @@ public class MainActivity extends AppCompatActivity {
             ConnectivityManager cm = (ConnectivityManager) context
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
 
-            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+            NetworkInfo activeNetwork = Objects.requireNonNull(cm).getActiveNetworkInfo();
             if (activeNetwork != null) {
                 if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI
                         || activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {

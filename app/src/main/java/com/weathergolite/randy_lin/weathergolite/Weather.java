@@ -10,10 +10,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 
 public class Weather {
-    private final String GET_CWB_OPENDATA_REST_URL = "http://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-093?";
-    private final String AUTHORIZATION_VALUE = "CWB-5E972971-9EE4-49BC-8FAE-D9B516D0B672";
-    private final String locationIDFormat = "F-D0047-0%s";
-    private final String ELEMENTNAME = "AT,Wx,PoP6h,Wind,RH,T";
 
     private String[] Wx;            // weather info in text. e.g.,多雲.晴
     private String[] weatherCode;   // weather code mather Wx
@@ -68,7 +64,7 @@ public class Weather {
             RH[i] = jAry[3].getJSONObject(i).getJSONArray("elementValue").getJSONObject(0).getString("value");
             if (halfi < 11)
                 PoP6h[halfi] = jAry[4].getJSONObject(halfi).getJSONArray("elementValue").getJSONObject(0).getString("value");
-            /************** Json data got something wrong, waiting for Opendata  source be fixed. ************************/
+            /*------------------------  Json data got something wrong, waiting for Opendata  source be fixed. ------------------------*/
             /*Wind[i] = jAry[5].getJSONObject(i)
                     .getJSONArray("parameter")
                     .getJSONObject(2)
@@ -85,6 +81,11 @@ public class Weather {
     }
 
     private String getResult(String geoloction) throws IOException {
+        final String GET_CWB_OPENDATA_REST_URL = "http://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-093?";
+        final String AUTHORIZATION_VALUE = "CWB-5E972971-9EE4-49BC-8FAE-D9B516D0B672";
+        final String locationIDFormat = "F-D0047-0%s";
+        final String ELEMENTNAME = "AT,Wx,PoP6h,Wind,RH,T";
+
         String[] Location = geoloction.split(",");
         String url = GET_CWB_OPENDATA_REST_URL
                 + "Authorization=" + AUTHORIZATION_VALUE + "&locationId=" + String.format(locationIDFormat, getlocaiotnID(Location[0]))

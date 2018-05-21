@@ -1,7 +1,6 @@
 package com.weathergolite.randy_lin.weathergolite;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -21,7 +20,7 @@ public class Geolocation {
     private Context context;
     private boolean chunk = true;
 
-    public Geolocation(Context c){
+    public Geolocation(Context c) {
         this.context = c;
     }
 
