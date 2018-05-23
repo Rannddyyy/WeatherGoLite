@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@android:id/text1"
-    style="?android:attr/spinnerItemStyle"
+    style="@style/spinnerItemStyle"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center"
     android:paddingBottom="5dp"
     android:paddingTop="5dp"
-    android:maxHeight="300dp"
-    android:scrollHorizontally="true"
-    android:lines="1"/>
+    android:textColor="@color/white"/>

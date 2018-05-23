@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -34,6 +35,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.format.Time;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -42,6 +44,8 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListPopupWindow;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -60,6 +64,8 @@ import com.google.android.gms.maps.model.LatLng;
 
 import org.json.JSONException;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -171,14 +177,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        final Spinner countrySpinner = (Spinner) findViewById(R.id.locationCountry_spinner);
+        final MySpinner countrySpinner = (MySpinner) findViewById(R.id.locationCountry_spinner);
         ArrayAdapter<CharSequence> adapList = ArrayAdapter.createFromResource(MainActivity.this, R.array.Country, R.layout.spinner_center_textview);
+        adapList.setDropDownViewResource(R.layout.spinner_dropdown);
         countrySpinner.setAdapter(adapList);
-        final Spinner citySpinner = (Spinner) findViewById(R.id.locationCity_spinner);
+        final MySpinner citySpinner = (MySpinner) findViewById(R.id.locationCity_spinner);
+        sss();
         countrySpinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 ArrayAdapter<CharSequence> adapList2 = ArrayAdapter.createFromResource(MainActivity.this, country2id(parent.getSelectedItem().toString()), R.layout.spinner_center_textview);
+                adapList2.setDropDownViewResource(R.layout.spinner_dropdown);
                 citySpinner.setAdapter(adapList2);
             }
 
@@ -236,6 +245,30 @@ public class MainActivity extends AppCompatActivity {
                 R.drawable.weather_icon_main_night_1,
                 R.drawable.weather_icon_main_night_5
         };
+    }
+
+    private void sss() {
+        try {
+            Field mPopupField = MySpinner.class.getDeclaredField("mPopup");
+            mPopupField.setAccessible(true);
+            ListPopupWindow pop = (ListPopupWindow) mPopupField.get(this);
+            DisplayMetrics monitorsize = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(monitorsize);
+            pop.setHeight(monitorsize.heightPixels / 3);
+            ListView listview = pop.getListView();
+            Field mScrollCacheField = View.class.getDeclaredField("mScrollCache");
+            mScrollCacheField.setAccessible(true);
+            Object mScrollCache = mScrollCacheField.get(listview);
+            Field scrollBarField = mScrollCache.getClass().getDeclaredField("scrollBar");
+            scrollBarField.setAccessible(true);
+            Object scrollBar = scrollBarField.get(mScrollCache);
+            Method method = scrollBar.getClass().getDeclaredMethod("setVerticalThumbDrawable", Drawable.class);
+            method.setAccessible(true);
+            method.invoke(scrollBar, getResources().getDrawable(R.drawable.scrollbar_style));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private int country2id(String c) {
