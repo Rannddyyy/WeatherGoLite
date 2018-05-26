@@ -45,6 +45,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -88,8 +89,6 @@ public class MainActivity extends AppCompatActivity {
         public void onStatusChanged(String provider, int status, Bundle extras) {
         }
     };
-    MyExpandableListAdapter listAdapter;
-    ExpandableListView expListView;
     private Handler handler = new Handler();
     private LocationManager locationManager;
     private NetworkChangeReceiver networkChangeReceiver;
@@ -263,6 +262,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
         xVals = new ArrayList<>();
         TyVals = new ArrayList<>();
         RPyVals = new ArrayList<>();
