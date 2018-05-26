@@ -3,4 +3,6 @@
     <string name="nothingHere">N/A</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="position_auto_text">自動定位</string>
+    <string name="position_custom_text">自定義位置</string>
 </resources>

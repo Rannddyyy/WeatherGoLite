@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:orientation="horizontal">
+
+    <Spinner
+        android:id="@+id/locationCountry_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:clickable="true"
+        android:dropDownVerticalOffset="40dp"
+        android:entries="@array/Country"
+        android:focusable="true"
+        android:padding="10dp"
+        android:textAlignment="center" />
+
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
+        android:background="@color/transparent_gray" />
+
+    <Spinner
+        android:id="@+id/locationCity_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:clickable="true"
+        android:dropDownVerticalOffset="40dp"
+        android:entries="@array/Country"
+        android:focusable="true"
+        android:padding="10dp"
+        android:textAlignment="center" />
+</LinearLayout>

@@ -3,9 +3,9 @@ package com.weathergolite.randy_lin.weathergolite;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.widget.ListPopupWindow;
 import android.widget.ListView;
@@ -38,8 +38,8 @@ public class MySpinner extends android.support.v7.widget.AppCompatSpinner {
     @Override
     public boolean performClick() {
         boolean bClicked = super.performClick();
-
         try {
+
             Field mPopupField = Spinner.class.getDeclaredField("mPopup");
             mPopupField.setAccessible(true);
             ListPopupWindow pop = (ListPopupWindow) mPopupField.get(this);
@@ -47,6 +47,7 @@ public class MySpinner extends android.support.v7.widget.AppCompatSpinner {
             ((Activity) getContext()).getWindowManager().getDefaultDisplay().getMetrics(monitorsize);
             pop.setHeight(monitorsize.heightPixels / 3);
             ListView listview = pop.getListView();
+            Log.e("@@@@@@@@@@",listview.getAdapter().getCount()+"");
             Field mScrollCacheField = View.class.getDeclaredField("mScrollCache");
             mScrollCacheField.setAccessible(true);
             Object mScrollCache = mScrollCacheField.get(listview);

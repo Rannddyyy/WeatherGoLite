@@ -18,6 +18,7 @@
         android:fitsSystemWindows="true">
 
         <LinearLayout
+            android:id="@+id/location_selector"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
@@ -31,14 +32,42 @@
                 android:textColor="@color/white"
                 android:textSize="16sp" />
 
-            <LinearLayout
+
+            <RadioGroup
+                android:id="@+id/postion_radio"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/position_auto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:checked="true"
+                    android:scaleX="0.85"
+                    android:scaleY="0.85"
+                    android:text="@string/position_auto_text"
+                    android:textColor="@color/white" />
+
+                <RadioButton
+                    android:id="@+id/position_custom"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:scaleX="0.85"
+                    android:scaleY="0.85"
+                    android:text="@string/position_custom_text"
+                    android:textColor="@color/white" />
+            </RadioGroup>
+
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:orientation="horizontal">
 
-
-                <com.weathergolite.randy_lin.weathergolite.MySpinner
+                <Spinner
                     android:id="@+id/locationCountry_spinner"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -58,7 +87,7 @@
                     android:layout_marginTop="5dp"
                     android:background="@color/transparent_gray" />
 
-                <com.weathergolite.randy_lin.weathergolite.MySpinner
+                <Spinner
                     android:id="@+id/locationCity_spinner"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -71,12 +100,6 @@
                     android:padding="10dp"
                     android:textAlignment="center" />
             </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/transparent_gray" />
-
         </LinearLayout>
     </android.support.design.widget.NavigationView>
 

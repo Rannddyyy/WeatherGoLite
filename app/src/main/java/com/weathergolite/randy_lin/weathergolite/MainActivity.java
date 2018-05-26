@@ -1,5 +1,6 @@
 package com.weathergolite.randy_lin.weathergolite;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -10,7 +11,6 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -43,9 +43,9 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ExpandableListView;
 import android.widget.ImageView;
-import android.widget.ListPopupWindow;
-import android.widget.ListView;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -65,7 +65,6 @@ import com.google.android.gms.maps.model.LatLng;
 import org.json.JSONException;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -89,6 +88,8 @@ public class MainActivity extends AppCompatActivity {
         public void onStatusChanged(String provider, int status, Bundle extras) {
         }
     };
+    MyExpandableListAdapter listAdapter;
+    ExpandableListView expListView;
     private Handler handler = new Handler();
     private LocationManager locationManager;
     private NetworkChangeReceiver networkChangeReceiver;
@@ -112,8 +113,7 @@ public class MainActivity extends AppCompatActivity {
     private String[] Wind;
     private String[] WindInfo;
     private String[] WeatherCode;
-    private String[] locationCounty;
-    private String[][] locationCity;
+    private String[] customLocation;
     private int[] weather_icon;
     private ArrayList<String> xVals;
     private ArrayList<Entry> TyVals;
@@ -121,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
     private Toast toastMsg;
     private int h;
     private int index;
+    private boolean autoPosition;
     private Runnable updateTimer = new Runnable() {
         public void run() {
             Time t = new Time();
@@ -151,8 +152,8 @@ public class MainActivity extends AppCompatActivity {
         }
         locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
         detectDevice();
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
         }
 
         locationT = this.findViewById(R.id.location);
@@ -176,13 +177,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-        final MySpinner countrySpinner = (MySpinner) findViewById(R.id.locationCountry_spinner);
+        final Spinner countrySpinner = (Spinner) findViewById(R.id.locationCountry_spinner);
         ArrayAdapter<CharSequence> adapList = ArrayAdapter.createFromResource(MainActivity.this, R.array.Country, R.layout.spinner_center_textview);
         adapList.setDropDownViewResource(R.layout.spinner_dropdown);
         countrySpinner.setAdapter(adapList);
-        final MySpinner citySpinner = (MySpinner) findViewById(R.id.locationCity_spinner);
-        sss();
+        final Spinner citySpinner = (Spinner) findViewById(R.id.locationCity_spinner);
         countrySpinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -196,6 +195,22 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+        citySpinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                customLocation = new String[]{countrySpinner.getSelectedItem().toString(), citySpinner.getSelectedItem().toString()};
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        DisplayMetrics monitorsize = new DisplayMetrics();
+        this.getWindowManager().getDefaultDisplay().getMetrics(monitorsize);
+        int mPopupWindowHeight = monitorsize.heightPixels / 3;
+        setPopupWindowHeight(countrySpinner, mPopupWindowHeight);
+        setPopupWindowHeight(citySpinner, mPopupWindowHeight);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         AppBarLayout.LayoutParams tparams = (AppBarLayout.LayoutParams) toolbar.getLayoutParams();
@@ -208,8 +223,11 @@ public class MainActivity extends AppCompatActivity {
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
-                WeatherAsyncTaskCustom weatherAsyncTaskCustom = new WeatherAsyncTaskCustom(MainActivity.this, countrySpinner.getSelectedItem().toString() + "," + citySpinner.getSelectedItem().toString());
-                weatherAsyncTaskCustom.execute();
+                requestPermissions(
+                        new String[]{
+                                ACCESS_COARSE_LOCATION,
+                                ACCESS_FINE_LOCATION},
+                        123);
             }
 
             public void onDrawerOpened(View drawerView) {
@@ -228,11 +246,28 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
+        RadioGroup postionRadioGroup = findViewById(R.id.postion_radio);
+        postionRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup radioGroup, int checkId) {
+                switch (checkId) {
+                    case R.id.position_auto:
+                        autoPosition = true;
+                        break;
+                    case R.id.position_custom:
+                        autoPosition = false;
+                        break;
+                    default:
+                        autoPosition = true;
+                        break;
+                }
+            }
+        });
         xVals = new ArrayList<>();
         TyVals = new ArrayList<>();
         RPyVals = new ArrayList<>();
         h = -1;
+        autoPosition = true;
         weather_icon = new int[]{
                 0,
                 R.drawable.weather_icon_main_1,
@@ -247,26 +282,13 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
-    private void sss() {
+    private void setPopupWindowHeight(Spinner mSpinner, int height) {
         try {
-            Field mPopupField = MySpinner.class.getDeclaredField("mPopup");
-            mPopupField.setAccessible(true);
-            ListPopupWindow pop = (ListPopupWindow) mPopupField.get(this);
-            DisplayMetrics monitorsize = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(monitorsize);
-            pop.setHeight(monitorsize.heightPixels / 3);
-            ListView listview = pop.getListView();
-            Field mScrollCacheField = View.class.getDeclaredField("mScrollCache");
-            mScrollCacheField.setAccessible(true);
-            Object mScrollCache = mScrollCacheField.get(listview);
-            Field scrollBarField = mScrollCache.getClass().getDeclaredField("scrollBar");
-            scrollBarField.setAccessible(true);
-            Object scrollBar = scrollBarField.get(mScrollCache);
-            Method method = scrollBar.getClass().getDeclaredMethod("setVerticalThumbDrawable", Drawable.class);
-            method.setAccessible(true);
-            method.invoke(scrollBar, getResources().getDrawable(R.drawable.scrollbar_style));
-
-        } catch (Exception e) {
+            Field popup = Spinner.class.getDeclaredField("mPopup");
+            popup.setAccessible(true);
+            android.widget.ListPopupWindow popupWindow = (android.widget.ListPopupWindow) popup.get(mSpinner);
+            popupWindow.setHeight(height);
+        } catch (NoClassDefFoundError | ClassCastException | NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
     }
@@ -355,10 +377,19 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode) {
             case 123:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Location location = getLastKnowLocation();
-                    if (location == null) return;
-                    WeatherAsyncTask weatherAsyncTask = new WeatherAsyncTask(this, location);
-                    weatherAsyncTask.execute();
+                    if (autoPosition) {
+                        Location location = getLastKnowLocation();
+                        if (location == null) return;
+                        WeatherAsyncTask weatherAsyncTask = new WeatherAsyncTask(this, location);
+                        weatherAsyncTask.execute();
+                    } else {
+                        if (customLocation != null) {
+                            WeatherAsyncTaskCustom weatherAsyncTaskCustom = new WeatherAsyncTaskCustom(
+                                    MainActivity.this,
+                                    customLocation[0] + "," + customLocation[1]);
+                            weatherAsyncTaskCustom.execute();
+                        }
+                    }
                 } else {
                     makeToast("拒絕授予權限，將使得大部分功能無法使用。");
                     if (!shouldShowRequestPermissionRationale(permissions[0])) {
@@ -547,24 +578,32 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0, j = index; i < weather.size() && j < weather.size(); ++i, ++j) {
             TyVals.add(new Entry(Integer.valueOf(T[j]), i));  //建立Entry放入Y軸，一個entry代表一個顯示的值
             RPyVals.add(new BarEntry(Integer.valueOf(PoP6h[j >> 1]), i));
-            xVals.add(time[j].substring(5, 7) + "/" + time[j].substring(8, 11) + "\n" + (changeT && i == 0 ? String.format("%02d:00", h) : time[j].substring(11, 16)));
+            xVals.add(time[j].substring(5, 7) + "/" + time
+                    [j].substring(8, 11) + "\n" + (changeT && i == 0 ? String.format("%02d:00", h) : time[j].substring(11, 16)));
         }
     }
 
     private void setWeatherInfo() {
+        if (time == null) return;
         findViewById(R.id.linearlayout).setBackgroundResource((h > 17 || h < 6) ? R.drawable.background_main_2 : R.drawable.background_main);
-        locationT.setText(geoLocation[1]);
-        temperatureT.setText(T[index] + "°C");
-        temperatureAT.setText("體感溫度: " + AT[index] + "°C");
-        RprobabilityT.setText(PoP6h[index] + "%");
-        humidityT.setText(RH[index] + "%");
+        if (geoLocation != null)
+            locationT.setText(geoLocation[1]);
+        if (T[index] != null)
+            temperatureT.setText(T[index] + "°C");
+        if (AT[index] != null)
+            temperatureAT.setText("體感溫度: " + AT[index] + "°C");
+        if (PoP6h[index] != null)
+            RprobabilityT.setText(PoP6h[index] + "%");
+        if (RH[index] != null)
+            humidityT.setText(RH[index] + "%");
         if (Wind[index] != null) {
             windspeedT.setText(Wind[index] + "m/s");
             if (Wind[index].indexOf("<=") >= 0)
                 windspeedT.setTextSize(17);
             windinfoT.setText(WindInfo[index]);
         }
-        weatherImage.setImageResource(weather_icon[weather_code(WeatherCode[index])]);
+        if (WeatherCode != null)
+            weatherImage.setImageResource(weather_icon[weather_code(WeatherCode[index])]);
         setTchart();
         setRPcahrt();
     }
@@ -737,7 +776,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                Log.e("Pos", mlocation.getLatitude() + "," + mlocation.getLongitude());
+                Log.e("Pos", "auto " + mlocation.getLatitude() + "," + mlocation.getLongitude());
                 getWeatherInfo(new Geolocation(getApplicationContext()).getGeolocation(new LatLng(mlocation.getLatitude(), mlocation.getLongitude())));
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -782,7 +821,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... params) {
             try {
-                Log.e("Pos", mlocation);
+                Log.e("Pos", "custom " + mlocation);
                 getWeatherInfo(mlocation);
             } catch (JSONException e) {
                 e.printStackTrace();
