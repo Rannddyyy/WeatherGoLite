@@ -5,4 +5,10 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="position_auto_text">自動定位</string>
     <string name="position_custom_text">自定義位置</string>
+    <string name="my_favorite_text">My Favorite</string>
+    <string name="location_text">Location</string>
+    <string name="clear_all_text">clear all</string>
+    <string name="favoriteClearCheck">確定要清除所有已保存的位置?</string>
+    <string name="yes">確定</string>
+    <string name="cancel">取消</string>
 </resources>
