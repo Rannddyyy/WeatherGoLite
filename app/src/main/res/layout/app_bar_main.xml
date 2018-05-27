@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/transparent"
-        app:contentInsetEnd="50dp"
+        app:contentInsetEnd="25dp"
         app:contentInsetLeft="0dp"
         app:contentInsetRight="0dp"
         app:contentInsetStart="50dp"
@@ -30,11 +30,23 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="@string/nothingHere"
                 android:drawableStart="@drawable/ic_place_white_28dp"
+                android:text="@string/nothingHere"
                 android:textColor="#FFFFFF"
                 android:textSize="24sp" />
         </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/favorite_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:scaleX="1.35"
+            android:scaleY="1.35"
+            android:src="@drawable/ic_add_white_24dp"
+            android:background="@color/transparent">
+
+        </ImageButton>
     </android.support.v7.widget.Toolbar>
 
 </android.support.design.widget.AppBarLayout>
