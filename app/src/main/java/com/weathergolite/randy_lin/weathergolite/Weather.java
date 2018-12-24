@@ -1,5 +1,11 @@
 package com.weathergolite.randy_lin.weathergolite;
 
+import android.util.Log;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -7,6 +13,8 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.net.URL;
 
 public class Weather {
@@ -25,22 +33,17 @@ public class Weather {
     public boolean getWeather(String geoloction) throws JSONException {
         if (geoloction == null) return false;
         JSONObject jObj = null;
-        try {
-            jObj = new JSONObject(getResult(geoloction));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        JSONArray[] jAry = new JSONArray[6];
+        jObj = new JSONObject(getResult(geoloction));
+        JSONArray weatherElement = jObj.getJSONObject("records")
+                .getJSONArray("locations")
+                .getJSONObject(0)
+                .getJSONArray("location")
+                .getJSONObject(0)
+                .getJSONArray("weatherElement");
+        JSONArray[] jAry = new JSONArray[weatherElement.length()];
         for (int i = 0; i < jAry.length; i++) {
             try {
-                jAry[i] = jObj.getJSONObject("records")
-                        .getJSONArray("locations")
-                        .getJSONObject(0)
-                        .getJSONArray("location")
-                        .getJSONObject(0)
-                        .getJSONArray("weatherElement")
-                        .getJSONObject(i)
-                        .getJSONArray("time");
+                jAry[i] = weatherElement.getJSONObject(i).getJSONArray("time");
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -80,7 +83,7 @@ public class Weather {
         return true;
     }
 
-    private String getResult(String geoloction) throws IOException {
+    private String getResult(String geoloction) {
         final String GET_CWB_OPENDATA_REST_URL = "http://opendata.cwb.gov.tw/api/v1/rest/datastore/F-D0047-093?";
         final String AUTHORIZATION_VALUE = "CWB-5E972971-9EE4-49BC-8FAE-D9B516D0B672";
         final String locationIDFormat = "F-D0047-0%s";
@@ -91,13 +94,25 @@ public class Weather {
                 + "Authorization=" + AUTHORIZATION_VALUE + "&locationId=" + String.format(locationIDFormat, getlocaiotnID(Location[0]))
                 + "&locationName=" + Location[1]
                 + "&elementName=" + ELEMENTNAME + "&sort=time";
-        //Log.e("@@@@URL",url+"");
         StringBuilder sb = new StringBuilder();
-        BufferedReader in = new BufferedReader(new InputStreamReader(new URL(url).openStream(), "utf-8"));
-        String inputLine;
-        while ((inputLine = in.readLine()) != null)
-            sb.append(inputLine);
-        in.close();
+        try {
+            HttpURLConnection connection = null;
+            connection = (HttpURLConnection) (new URL(url)).openConnection();
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+            connection.setRequestMethod("GET");
+            connection.setReadTimeout(10 * 1000);
+            connection.connect();
+
+            String inputLine;
+            BufferedReader br;
+            br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            while ((inputLine = br.readLine()) != null) {
+                sb.append(inputLine);
+            }
+            br.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return sb.toString();
     }
 

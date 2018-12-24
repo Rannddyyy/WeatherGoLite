@@ -108,38 +108,48 @@
                 android:layout_marginTop="5dp"
                 android:background="@color/transparent_gray" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:text="@string/my_favorite_text"
-                    android:textColor="@color/white"
-                    android:textSize="16sp" />
-
-                <Button
-                    android:layout_width="76dp"
-                    android:layout_height="28dp"
-                    android:layout_marginEnd="5dp"
-                    android:background="@drawable/favorite_clearbtn_style"
-                    android:focusable="true"
-                    android:onClick="favoriteClearAll"
-                    android:text="@string/clear_all_text"
-                    android:textColor="@color/white"
-                    android:textSize="10sp" />
-
-            </LinearLayout>
-
             <ListView
                 android:id="@+id/favorite_location_lv"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
+            <ExpandableListView
+                android:id="@+id/favorite_location_explv"
+                android:groupIndicator="@drawable/favorite_expandlist_indicator"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/favorite_clearall_btn"
+                    android:layout_width="75dp"
+                    android:layout_height="25dp"
+                    android:layout_marginEnd="5dp"
+                    android:background="@drawable/favorite_clearbtn_style"
+                    android:focusable="true"
+                    android:onClick="favoriteClearAll"
+                    android:text="@string/clear_all_text"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    android:textSize="11sp"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="expandList"
+                android:text="Expand"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="collapseList"
+                android:text="Collapse"/>
         </LinearLayout>
     </android.support.design.widget.NavigationView>
 </android.support.v4.widget.DrawerLayout>

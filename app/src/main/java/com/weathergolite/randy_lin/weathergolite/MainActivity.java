@@ -44,10 +44,10 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -104,9 +104,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView humidityT;
     private TextView windspeedT;
     private TextView windinfoT;
-    private ListView favoritelv;
+    private ExpandableListView favoriteExplv;
     private ImageView weatherImage;
     private ImageButton favoriteBtn;
+    private Button clearAllBtn;
     private LineChart Tchart;
     private BarChart RPchart;
     private String[] geoLocation;
@@ -123,12 +124,11 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Entry> TyVals;
     private ArrayList<BarEntry> RPyVals;
     private ArrayList<String> favoriteList;
-    private ArrayAdapter<String> favoriteAdapter;
+    private MyExpandableListAdapter favoriteExpAdapter;
     private Toast toastMsg;
     private SharedPreferences locationKeepSP;
     private SharedPreferences.Editor locationKeepEditor;
-    private Runnable updateAdapter;
-    private WeatherAsyncTask weatherAsyncTaskCustom;
+    private WeatherAsyncTask weatherAsyncTask;
     private DrawerLayout drawer;
     private int favoriteCount;
     private int h;
@@ -177,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
                 favoriteList.add(locationKeepSP.getString("value[" + i + "]", ""));
             Collections.sort(favoriteList);
         }
-        favoritelv = this.findViewById(R.id.favorite_location_lv);
+        favoriteExplv = this.findViewById(R.id.favorite_location_explv);
         locationT = this.findViewById(R.id.location);
         temperatureT = this.findViewById(R.id.temperature);
         temperatureAT = this.findViewById(R.id.Atemperature);
@@ -188,46 +188,79 @@ public class MainActivity extends AppCompatActivity {
         weatherImage = this.findViewById(R.id.weather_icon);
         Tchart = this.findViewById(R.id.Tchart);
         RPchart = this.findViewById(R.id.RPchart);
-        favoriteAdapter = new ArrayAdapter<String>(this, R.layout.favorite_listtext, favoriteList);
-        favoritelv.setAdapter(favoriteAdapter);
-        favoritelv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        clearAllBtn = this.findViewById(R.id.favorite_clearall_btn);
+        Log.e("@@@@@@getRight", favoriteExplv.getRight() + "  " + favoriteExplv.getWidth());
+        favoriteExplv.setIndicatorBounds(favoriteExplv.getRight() - 40, favoriteExplv.getWidth());
+        favoriteExpAdapter = new MyExpandableListAdapter(this, "My Favorite", favoriteList);
+        favoriteExplv.setAdapter(favoriteExpAdapter);
+        favoriteExplv.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> av, View v, int pos, long id) {
-                for (int i = 0; i < favoriteCount; i++) {
-                    Log.e("@@@@@@@@", favoritelv.getItemAtPosition(pos).toString());
-                    if (locationKeepSP.getString("value[" + i + "]", "").equals(favoritelv.getItemAtPosition(pos).toString())) {
-                        printSP();
-                        favoriteList.remove(pos);
-                        locationKeepEditor.remove("value[" + (favoriteCount - 1) + "]");
-                        favoriteCount--;
-                        locationKeepEditor.remove("value[" + i + "]");
-                        String nextItem;
-                        for (int j = i; j < favoriteCount; j++) {
-                            nextItem = locationKeepSP.getString("value[" + (j + 1) + "]", "");
-                            Log.e("nextItem", j + "  " + nextItem);
-                            locationKeepEditor.putString("value[" + j + "]", nextItem);
-                        }
-                        locationKeepEditor.putInt("count", favoriteCount);
-                        locationKeepEditor.apply();
-                        updateAdapter();
-                        makeToast("成功刪除");
-                        printSP();
-                        return false;
-                    }
-                }
+            public boolean onGroupClick(ExpandableListView expandableListView, View view, int groupPosition, long id) {
+                Log.e("@@@@@@@@@@@@@@@", "favoriteExplv onGroupClick");
+                if (favoriteExplv.isGroupExpanded(groupPosition) || isFavoriteEmpty())
+                    clearAllBtn.setVisibility(View.GONE);
+                else
+                    clearAllBtn.setVisibility(View.VISIBLE);
                 return false;
             }
         });
-        favoritelv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        favoriteExplv.setOnItemLongClickListener(new ExpandableListView.OnItemLongClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int pos, long id) {
-                ((RadioButton) findViewById(R.id.position_auto)).setChecked(false);
-                ((RadioButton) findViewById(R.id.position_custom)).setChecked(false);
-                geoLocation = favoritelv.getItemAtPosition(pos).toString().split(",");
-                autoPosition = 2;
-                drawer.closeDrawers();
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int pos, long id) {
+                Log.e("@@@@@@@@@@@@@@@", "favoriteExplv LongClick");
+                if (pos == 0) return true;  //Explv group
+                new AlertDialog.Builder(MainActivity.this)
+                        .setMessage(getResources().getString(R.string.favoriteSingleClearCheck, favoriteExplv.getItemAtPosition(pos).toString()))
+                        .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                for (int i = 0; i < favoriteCount; i++) {
+                                    if (locationKeepSP.getString("value[" + i + "]", "").equals(favoriteExplv.getItemAtPosition(pos).toString())) {
+                                        printSP();
+                                        favoriteList.remove(pos - 1);
+                                        locationKeepEditor.remove("value[" + (favoriteCount - 1) + "]");
+                                        favoriteCount--;
+                                        locationKeepEditor.remove("value[" + i + "]");
+                                        String nextItem;
+                                        for (int j = i; j < favoriteCount; j++) {
+                                            nextItem = locationKeepSP.getString("value[" + (j + 1) + "]", "");
+                                            locationKeepEditor.putString("value[" + j + "]", nextItem);
+                                        }
+                                        locationKeepEditor.putInt("count", favoriteCount);
+                                        locationKeepEditor.apply();
+                                        updateAdapter();
+                                        makeToast("成功刪除");
+                                        printSP();
+                        /*if (isFavoriteEmpty()) {
+                            Log.e("isFavoriteEmpty", "" + isFavoriteEmpty());
+                            favoriteExplv.collapseGroup(0);
+                            clearAllBtn.setVisibility(View.GONE);
+                        }*/
+                                    }
+                                }
+                            }
+                        })
+                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        })
+                        .show();
+                return true;
             }
         });
+        favoriteExplv.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+            @Override
+            public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
+                Log.e("@@@@@@@@@@@@@@@", "favoriteExplv ChildClick");
+                ((RadioGroup) findViewById(R.id.position_radio)).clearCheck();
+                geoLocation = favoriteExpAdapter.getChild(groupPosition, childPosition).toString().split(",");
+                autoPosition = 2;
+                drawer.closeDrawers();
+                return false;
+            }
+        });
+
         favoriteBtn = this.findViewById(R.id.favorite_btn);
         favoriteBtn.setOnClickListener(new ImageButton.OnClickListener() {
             @Override
@@ -235,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
                 if (favoriteCount > 0) {
                     for (int i = 0; i < favoriteCount; i++) {
                         if (locationKeepSP.getString("value[" + i + "]", "").equals(geoLocation[0] + "," + geoLocation[1])) {
-                            makeToast("該地點已存在 My Favorite");
+                            makeToast("該地點已存在於 My Favorite");
                             return;
                         }
                     }
@@ -309,7 +342,6 @@ public class MainActivity extends AppCompatActivity {
         };
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
 
@@ -352,16 +384,23 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
+    private boolean isFavoriteEmpty() {
+        return locationKeepSP.getString("value[" + 0 + "]", "").isEmpty();
+    }
+
     public void favoriteClearAll(View view) {
-        if (!(locationKeepSP.getString("value[" + 0 + "]", "")).isEmpty()) {
+        if (!isFavoriteEmpty()) {
             new AlertDialog.Builder(MainActivity.this)
-                    .setMessage(R.string.favoriteClearCheck)
+                    .setMessage(R.string.favoriteAllClearCheck)
                     .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             locationKeepEditor.clear().apply();
                             updateAdapter();
                             makeToast("所有位置都被清除囉");
+                            clearAllBtn.setVisibility(View.GONE);
+                            Log.e("@@@@@@@@", favoriteExplv.isGroupExpanded(0) + "");
+                            //favoriteExplv.collapseGroup(0);
                         }
                     })
                     .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -392,6 +431,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateAdapter() {
+        Log.e("@@@@@@@@@@@@@@@", "updateAdapter");
         favoriteList.clear();
         favoriteCount = locationKeepSP.getInt("count", 0);
         if (favoriteCount > 0) {
@@ -399,7 +439,14 @@ public class MainActivity extends AppCompatActivity {
                 favoriteList.add(locationKeepSP.getString("value[" + i + "]", ""));
             Collections.sort(favoriteList);
         }
-        favoriteAdapter.notifyDataSetChanged();
+        favoriteExplv.collapseGroup(0);
+        favoriteExplv.expandGroup(0);
+        if (isFavoriteEmpty())
+            clearAllBtn.setVisibility(View.GONE);
+        else
+            clearAllBtn.setVisibility(View.VISIBLE);
+
+        //favoriteExpAdapter.refresh(favoriteExplv, 0);
     }
 
     private void setPopupWindowHeight(Spinner mSpinner, int height) {
@@ -501,29 +548,30 @@ public class MainActivity extends AppCompatActivity {
                         case 0: //spinner custom
                             geoLocation = spinnerLocation;
                             Log.e("@@@@@@@@", geoLocation[0] + "," + geoLocation[1]);
-                            weatherAsyncTaskCustom = new WeatherAsyncTask(
+                            weatherAsyncTask = new WeatherAsyncTask(
                                     MainActivity.this,
                                     geoLocation[0] + "," + geoLocation[1]);
-                            weatherAsyncTaskCustom.execute();
+                            weatherAsyncTask.execute();
                             break;
                         case 1:  //auto postion
                             Location location = getLastKnowLocation();
                             try {
-                                geoLocation = new Geolocation(getApplicationContext()).getGeolocation(new LatLng(location.getLatitude(), location.getLongitude())).split(",");
+                                //geoLocation = new Geolocation(getApplicationContext()).getGeolocation(new LatLng(location.getLatitude(), location.getLongitude())).split(",");
+                                geoLocation = new Geolocation(getApplicationContext()).getGeolocation(new LatLng(24.970128, 121.266241)).split(",");
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-                            weatherAsyncTaskCustom = new WeatherAsyncTask(
+                            weatherAsyncTask = new WeatherAsyncTask(
                                     MainActivity.this,
                                     geoLocation[0] + "," + geoLocation[1]);
-                            weatherAsyncTaskCustom.execute();
+                            weatherAsyncTask.execute();
                             break;
                         case 2: //favorite custom
                             if (geoLocation != null) {
-                                weatherAsyncTaskCustom = new WeatherAsyncTask(
+                                weatherAsyncTask = new WeatherAsyncTask(
                                         MainActivity.this,
                                         geoLocation[0] + "," + geoLocation[1]);
-                                weatherAsyncTaskCustom.execute();
+                                weatherAsyncTask.execute();
                             }
                             break;
                     }
@@ -867,6 +915,14 @@ public class MainActivity extends AppCompatActivity {
 
     public void printSP(View view) {
         printSP();
+    }
+
+    public void collapseList(View view) {
+        favoriteExplv.collapseGroup(0);
+    }
+
+    public void expandList(View view) {
+        favoriteExplv.expandGroup(0);
     }
 
 
