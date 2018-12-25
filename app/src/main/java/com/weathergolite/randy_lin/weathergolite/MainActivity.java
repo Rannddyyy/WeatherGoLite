@@ -206,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 for (int i = 0; i < favoriteCount; i++) {
-                                    if (locationKeepSP.getString("value[" + i + "]", "").equals(favoriteExplv.getItemAtPosition(pos).toString().replace(" ",""))) {
+                                    if (locationKeepSP.getString("value[" + i + "]", "").equals(favoriteExplv.getItemAtPosition(pos).toString().replace(" ", ""))) {
                                         printSP();
                                         favoriteList.remove(pos - 1);
                                         locationKeepEditor.remove("value[" + (favoriteCount - 1) + "]");
@@ -326,9 +326,12 @@ public class MainActivity extends AppCompatActivity {
                         123);
             }
 
-            public void onDrawerOpened(View drawerView) {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+                if (isFavoriteEmpty())
+                    favoriteExplv.setGroupIndicator(null);
                 favoriteExplv.setIndicatorBounds(favoriteExplv.getRight() - 90, favoriteExplv.getRight() - 10);
-                super.onDrawerOpened(drawerView);
+                super.onDrawerSlide(drawerView, slideOffset);
             }
         };
         drawer.addDrawerListener(toggle);
