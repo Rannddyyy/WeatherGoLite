@@ -77,7 +77,7 @@
                     android:dropDownVerticalOffset="40dp"
                     android:entries="@array/Country"
                     android:focusable="true"
-                    android:padding="10dp"
+                    android:padding="5dp"
                     android:textAlignment="center" />
 
                 <View
@@ -97,7 +97,7 @@
                     android:dropDownVerticalOffset="40dp"
                     android:entries="@array/Country"
                     android:focusable="true"
-                    android:padding="10dp"
+                    android:padding="5dp"
                     android:textAlignment="center" />
             </LinearLayout>
 
@@ -130,6 +130,7 @@
                     android:layout_width="75dp"
                     android:layout_height="25dp"
                     android:layout_marginEnd="5dp"
+                    android:layout_marginTop="3dp"
                     android:background="@drawable/favorite_clearbtn_style"
                     android:focusable="true"
                     android:onClick="favoriteClearAll"
@@ -140,16 +141,6 @@
                     android:visibility="gone" />
 
             </LinearLayout>
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="expandList"
-                android:text="Expand"/>
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="collapseList"
-                android:text="Collapse"/>
         </LinearLayout>
     </android.support.design.widget.NavigationView>
 </android.support.v4.widget.DrawerLayout>

@@ -98,14 +98,15 @@ public class Weather {
         try {
             HttpURLConnection connection = null;
             connection = (HttpURLConnection) (new URL(url)).openConnection();
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0");
-            connection.setRequestMethod("GET");
             connection.setReadTimeout(10 * 1000);
+            connection.setConnectTimeout(10 * 1000);
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; U; Android 4.4.2; en-us; SCH-I535 Build/KOT49H) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30");
+            connection.setRequestProperty("Connection","close");
             connection.connect();
 
             String inputLine;
-            BufferedReader br;
-            br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             while ((inputLine = br.readLine()) != null) {
                 sb.append(inputLine);
             }

@@ -1,6 +1,5 @@
 package com.weathergolite.randy_lin.weathergolite;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -28,14 +27,13 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.format.Time;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MenuItem;
@@ -69,6 +67,7 @@ import org.json.JSONException;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -137,11 +136,10 @@ public class MainActivity extends AppCompatActivity {
     private int autoPosition;  // 0-spinner custom 1-auto 2-favorite custom
     private Runnable updateTimer = new Runnable() {
         public void run() {
-            Time t = new Time();
-            t.setToNow();
-            if (h != t.hour) {
+            int nowHour = Calendar.getInstance().get(Calendar.HOUR);
+            if (h != nowHour) {
                 index = 1;
-                h = t.hour;
+                h = nowHour;
                 if (!isNetworkConnected(getApplicationContext())) return;
                 weather = new Weather();
                 requestPermissions(
@@ -165,16 +163,13 @@ public class MainActivity extends AppCompatActivity {
         }
         locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
         detectDevice();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-        }
         locationKeepSP = getSharedPreferences("location", MODE_PRIVATE);
         locationKeepEditor = locationKeepSP.edit();
         favoriteList = new ArrayList<String>();
         favoriteCount = locationKeepSP.getInt("count", 0);
         if (favoriteCount > 0) {
             for (int i = 0; i < favoriteCount; i++)
-                favoriteList.add(locationKeepSP.getString("value[" + i + "]", ""));
+                favoriteList.add(locationKeepSP.getString("value[" + i + "]", "").replace(",", ", "));
             Collections.sort(favoriteList);
         }
         favoriteExplv = this.findViewById(R.id.favorite_location_explv);
@@ -189,14 +184,11 @@ public class MainActivity extends AppCompatActivity {
         Tchart = this.findViewById(R.id.Tchart);
         RPchart = this.findViewById(R.id.RPchart);
         clearAllBtn = this.findViewById(R.id.favorite_clearall_btn);
-        Log.e("@@@@@@getRight", favoriteExplv.getRight() + "  " + favoriteExplv.getWidth());
-        favoriteExplv.setIndicatorBounds(favoriteExplv.getRight() - 40, favoriteExplv.getWidth());
         favoriteExpAdapter = new MyExpandableListAdapter(this, "My Favorite", favoriteList);
         favoriteExplv.setAdapter(favoriteExpAdapter);
         favoriteExplv.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
             public boolean onGroupClick(ExpandableListView expandableListView, View view, int groupPosition, long id) {
-                Log.e("@@@@@@@@@@@@@@@", "favoriteExplv onGroupClick");
                 if (favoriteExplv.isGroupExpanded(groupPosition) || isFavoriteEmpty())
                     clearAllBtn.setVisibility(View.GONE);
                 else
@@ -207,7 +199,6 @@ public class MainActivity extends AppCompatActivity {
         favoriteExplv.setOnItemLongClickListener(new ExpandableListView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int pos, long id) {
-                Log.e("@@@@@@@@@@@@@@@", "favoriteExplv LongClick");
                 if (pos == 0) return true;  //Explv group
                 new AlertDialog.Builder(MainActivity.this)
                         .setMessage(getResources().getString(R.string.favoriteSingleClearCheck, favoriteExplv.getItemAtPosition(pos).toString()))
@@ -215,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 for (int i = 0; i < favoriteCount; i++) {
-                                    if (locationKeepSP.getString("value[" + i + "]", "").equals(favoriteExplv.getItemAtPosition(pos).toString())) {
+                                    if (locationKeepSP.getString("value[" + i + "]", "").equals(favoriteExplv.getItemAtPosition(pos).toString().replace(" ",""))) {
                                         printSP();
                                         favoriteList.remove(pos - 1);
                                         locationKeepEditor.remove("value[" + (favoriteCount - 1) + "]");
@@ -252,7 +243,6 @@ public class MainActivity extends AppCompatActivity {
         favoriteExplv.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
-                Log.e("@@@@@@@@@@@@@@@", "favoriteExplv ChildClick");
                 ((RadioGroup) findViewById(R.id.position_radio)).clearCheck();
                 geoLocation = favoriteExpAdapter.getChild(groupPosition, childPosition).toString().split(",");
                 autoPosition = 2;
@@ -274,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 locationKeepEditor.putString("value[" + favoriteCount + "]", geoLocation[0] + "," + geoLocation[1]);
-                favoriteList.add(locationKeepSP.getString("value[" + favoriteCount + "]", ""));
+                favoriteList.add(locationKeepSP.getString("value[" + favoriteCount + "]", "").replace(",", ", "));
                 locationKeepEditor.putInt("count", ++favoriteCount);
                 locationKeepEditor.apply();
                 updateAdapter();
@@ -337,6 +327,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             public void onDrawerOpened(View drawerView) {
+                favoriteExplv.setIndicatorBounds(favoriteExplv.getRight() - 90, favoriteExplv.getRight() - 10);
                 super.onDrawerOpened(drawerView);
             }
         };
@@ -399,7 +390,6 @@ public class MainActivity extends AppCompatActivity {
                             updateAdapter();
                             makeToast("所有位置都被清除囉");
                             clearAllBtn.setVisibility(View.GONE);
-                            Log.e("@@@@@@@@", favoriteExplv.isGroupExpanded(0) + "");
                             //favoriteExplv.collapseGroup(0);
                         }
                     })
@@ -431,20 +421,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateAdapter() {
-        Log.e("@@@@@@@@@@@@@@@", "updateAdapter");
         favoriteList.clear();
         favoriteCount = locationKeepSP.getInt("count", 0);
         if (favoriteCount > 0) {
             for (int i = 0; i < favoriteCount; i++)
-                favoriteList.add(locationKeepSP.getString("value[" + i + "]", ""));
+                favoriteList.add(locationKeepSP.getString("value[" + i + "]", "").replace(",", ", "));
             Collections.sort(favoriteList);
         }
         favoriteExplv.collapseGroup(0);
         favoriteExplv.expandGroup(0);
-        if (isFavoriteEmpty())
+        if (isFavoriteEmpty()) {
             clearAllBtn.setVisibility(View.GONE);
-        else
+            favoriteExplv.setGroupIndicator(null);
+        } else {
             clearAllBtn.setVisibility(View.VISIBLE);
+            favoriteExplv.setGroupIndicator(ResourcesCompat.getDrawable(getResources(), R.drawable.favorite_expandlist_indicator, null));
+        }
 
         //favoriteExpAdapter.refresh(favoriteExplv, 0);
     }
@@ -916,15 +908,6 @@ public class MainActivity extends AppCompatActivity {
     public void printSP(View view) {
         printSP();
     }
-
-    public void collapseList(View view) {
-        favoriteExplv.collapseGroup(0);
-    }
-
-    public void expandList(View view) {
-        favoriteExplv.expandGroup(0);
-    }
-
 
     public class NetworkChangeReceiver extends BroadcastReceiver {
 

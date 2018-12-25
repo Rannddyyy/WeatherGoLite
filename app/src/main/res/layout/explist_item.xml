@@ -8,4 +8,5 @@
     android:paddingEnd="20dp"
     android:paddingStart="20dp"
     android:textAppearance="?android:attr/textAppearanceListItemSmall"
-    android:textColor="@color/white" />
+    android:textColor="@color/white"
+    android:background="#11000b39"/>
