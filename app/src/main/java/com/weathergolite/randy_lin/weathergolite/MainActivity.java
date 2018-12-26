@@ -222,11 +222,6 @@ public class MainActivity extends AppCompatActivity {
                                         updateAdapter();
                                         makeToast("成功刪除");
                                         printSP();
-                        /*if (isFavoriteEmpty()) {
-                            Log.e("isFavoriteEmpty", "" + isFavoriteEmpty());
-                            favoriteExplv.collapseGroup(0);
-                            clearAllBtn.setVisibility(View.GONE);
-                        }*/
                                     }
                                 }
                             }
@@ -778,7 +773,7 @@ public class MainActivity extends AppCompatActivity {
             humidityT.setText(RH[index] + "%");
         if (Wind[index] != null) {
             windspeedT.setText(Wind[index] + "m/s");
-            if (Wind[index].indexOf("<=") >= 0)
+            if (Wind[index].contains("<="))
                 windspeedT.setTextSize(17);
             windinfoT.setText(WindInfo[index]);
         }
