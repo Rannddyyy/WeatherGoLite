@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
     private int autoPosition;  // 0-spinner custom 1-auto 2-favorite custom
     private Runnable updateTimer = new Runnable() {
         public void run() {
-            int nowHour = Calendar.getInstance().get(Calendar.HOUR);
+            int nowHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
             if (h != nowHour) {
                 index = 1;
                 h = nowHour;
