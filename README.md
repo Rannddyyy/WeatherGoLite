@@ -13,3 +13,4 @@ Weather Go Lite 為 Weather Go 的輕量化版本，捨去了路徑選擇的功�
 Screenshots
 ---
 
+ <img src="https://i.imgur.com/ngXDiNm.png" width="200"> <img src="https://i.imgur.com/b7JTQjN.png" width="200"> <img src="https://i.imgur.com/CSmh0Tn.png" width="200">
